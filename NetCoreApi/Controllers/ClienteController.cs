@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NetCoreApi.Models;
 using System.Runtime.CompilerServices;
+using System.Security.Claims;
 
 namespace NetCoreApi.Controllers
 {
@@ -65,19 +66,26 @@ namespace NetCoreApi.Controllers
             [Route("eliminar")]
             public dynamic eliminarCliente(Cliente cliente)
             {
-               string token = Request.Headers.Where(x => x.Key == "Authorization").FirstOrDefault().Value;
 
-                if (token != "carlos123")
+            var identity = HttpContext.User.Identity as ClaimsIdentity; // 
+
+            var rToken = Jwt.validarToken(identity);
+
+            if (!rToken.success)
+                return rToken;
+
+            Usuario usuario = rToken.result;
+
+            if(usuario.rol != "ADMIN")
+            {
+                return new
                 {
-                    return new
-                    {
-                        succes = false,
-                        message = " Token incorrecto ",
-                        result = ""
+                    success = false,
+                    message = "No tienes permisos para eliminar clientes",
+                    values = ""
+                };
+            }
 
-                    };
-
-                }
                 return new
                 {
                     succes = true,
